@@ -1,14 +1,6 @@
-# This file contains helper functions for CRUD operations on Match, User, and Ticket models.
-from lib.db.models import Match, Ticket, User, Base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from lib.db.models import Match, Ticket, User
 
-# setup session
-engine = create_engine("sqlite:///lib/db/app.db")
-SessionLocal = sessionmaker(bind=engine)
-
-# Match functions
-
+# ---------------- MATCH ----------------
 def create_match(session, home_team, away_team, date, venue):
     match = Match(home_team=home_team, away_team=away_team, date=date, venue=venue)
     session.add(match)
@@ -27,9 +19,7 @@ def delete_match(session, match_id):
         session.delete(match)
         session.commit()
 
-
-# User functions
-
+# ---------------- USER ----------------
 def create_user(session, name, email):
     user = User(name=name, email=email)
     session.add(user)
@@ -48,16 +38,14 @@ def delete_user(session, user_id):
         session.delete(user)
         session.commit()
 
-# Ticket functions
-
+# ---------------- TICKET ----------------
 def create_ticket(session, seat_number, match_id, user_id):
-    # check if ticket already exists
-    existing_ticket = session.query(Ticket).filter(
-        Ticket.seat_number==seat_number,
-        Ticket.match_id==match_id
+    # prevent double booking for same match
+    existing_ticket = session.query(Ticket).filter_by(
+        seat_number=seat_number, match_id=match_id
     ).first()
     if existing_ticket:
-        return None  # prevents double booking
+        return None
     ticket = Ticket(seat_number=seat_number, match_id=match_id, user_id=user_id)
     session.add(ticket)
     session.commit()

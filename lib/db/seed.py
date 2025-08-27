@@ -1,26 +1,36 @@
-from models import Base, User, Match, Ticket
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from lib.db.models import Base, User, Match, Ticket
 
-engine = create_engine("sqlite:///app.db")
-Base.metadata.bind = engine
-Session = sessionmaker(bind=engine)
-session = Session()
+engine = create_engine("sqlite:///lib/db/app.db")
+SessionLocal = sessionmaker(bind=engine)
+session = SessionLocal()
 
-# Add sample users
-user1 = User(name="Alice", email="alice@example.com")
-user2 = User(name="Bob", email="bob@example.com")
-session.add_all([user1, user2])
-session.commit()
+def seed():
+    # reset DB
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
 
-# Add sample matches
-match1 = Match(name="CHAN: Kenya vs Uganda", date="2025-08-30")
-session.add(match1)
-session.commit()
+    # sample users
+    user1 = User(name="Jane", email="jane@example.com")
+    user2 = User(name="Doe", email="doe@example.com")
 
-# Add sample tickets
-ticket1 = Ticket(user_id=user1.id, match_id=match1.id, seat="A1")
-session.add(ticket1)
-session.commit()
+    # sample matches
+    match1 = Match(home_team="Kenya", away_team="Uganda", date="2025-08-30", venue="Nairobi Kasarani Stadium")
+    match2 = Match(home_team="Tanzania", away_team="Morocco", date="2025-09-02", venue="Dar es Salaam B.Mkapa Stadium")
+    match3 = Match(home_team="Uganda", away_team="Senegal", date="2025-09-05", venue="Kampala Mandela National Stadium")
 
-print("Seeding complete!")
+    session.add_all([user1, user2, match1, match2, match3])
+    session.commit()
+
+    # sample tickets
+    ticket1 = Ticket(user_id=user1.id, match_id=match1.id, seat_number="A1")
+    ticket2 = Ticket(user_id=user2.id, match_id=match2.id, seat_number="B5")
+
+    session.add_all([ticket1, ticket2])
+    session.commit()
+
+    print("✅ Database seeded!")
+
+if __name__ == "__main__":
+    seed()
