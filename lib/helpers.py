@@ -19,6 +19,25 @@ def delete_match(session, match_id):
         session.delete(match)
         session.commit()
 
+def update_match(session, match_id, home_team=None, away_team=None, date=None, venue=None):
+    match = find_match_by_id(session, match_id)
+    if not match:
+        print(" Match not found.")
+        return None
+
+    if home_team:
+        match.home_team = home_team
+    if away_team:
+        match.away_team = away_team
+    if date:
+        match.date = date
+    if venue:
+        match.venue = venue
+
+    session.commit()
+    return match
+
+
 # ---------------- USER ----------------
 def create_user(session, name, email):
     user = User(name=name, email=email)
