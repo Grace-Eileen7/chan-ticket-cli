@@ -1,36 +1,88 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from lib.db.models import Base, User, Match, Ticket
+from faker import Faker
+
+# Initialize Faker (Kenyan locale optional)
+fake = Faker()
 
 engine = create_engine("sqlite:///lib/db/app.db")
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
 
 def seed():
-    # reset DB
+    # Reset DB
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
-    # sample users
-    user1 = User(name="Jane", email="jane@example.com")
-    user2 = User(name="Doe", email="doe@example.com")
+    # Realistic CHAN teams
+    chan_teams = [
+        "Kenya Harambee Stars", "Uganda Cranes", "Tanzania Taifa Stars",
+        "Senegal Lions", "Morocco Atlas Lions", "Mali Eagles",
+        "Ghana Black Stars", "Zambia Chipolopolo", "Nigeria Super Eagles",
+        "Algeria Desert Warriors", "Cameroon Indomitable Lions", "Egypt Pharaohs"
+    ]
 
-    # sample matches
-    match1 = Match(home_team="Kenya", away_team="Uganda", date="2025-08-30", venue="Nairobi Kasarani Stadium")
-    match2 = Match(home_team="Tanzania", away_team="Morocco", date="2025-09-02", venue="Dar es Salaam B.Mkapa Stadium")
-    match3 = Match(home_team="Uganda", away_team="Senegal", date="2025-09-05", venue="Kampala Mandela National Stadium")
+    # Kenyan stadiums
+    kenyan_stadiums = [
+        "Kasarani Stadium, Nairobi", "Nyayo National Stadium, Nairobi",
+        "Moi International Sports Centre, Kasarani", "Bukhungu Stadium, Kakamega",
+        "Kipchoge Keino Stadium, Eldoret", "Mbaraki Sports Club, Mombasa"
+    ]
 
-    session.add_all([user1, user2, match1, match2, match3])
+    # --- Create Users ---
+    users = []
+    for _ in range(10):
+        user = User(
+            name=fake.name(),
+            email=fake.unique.email()
+        )
+        session.add(user)
+        session.flush()  # generate .id before commit
+        users.append(user)
+    session.commit()  # commit all users
+
+    # --- Create Matches ---
+    matches = []
+    for _ in range(6):
+        home_team = fake.random_element(chan_teams)
+        away_team = fake.random_element([team for team in chan_teams if team != home_team])
+        match = Match(
+            home_team=home_team,
+            away_team=away_team,
+            date=fake.date_this_year(),
+            venue=fake.random_element(kenyan_stadiums)
+        )
+        session.add(match)
+        session.flush()  # generate .id
+        matches.append(match)
     session.commit()
 
-    # sample tickets
-    ticket1 = Ticket(user_id=user1.id, match_id=match1.id, seat_number="A1")
-    ticket2 = Ticket(user_id=user2.id, match_id=match2.id, seat_number="B5")
+    # --- Create Tickets ---
+    tickets = []
+    for match in matches:
+        for _ in range(fake.random_int(min=5, max=10)):
+            row = fake.random_letter().upper()
+            number = fake.random_int(min=1, max=30)
+            seat_number = f"{row}{number}"
 
-    session.add_all([ticket1, ticket2])
+            ticket = Ticket(
+                user_id=fake.random_element(users).id,
+                match_id=match.id,
+                seat_number=seat_number
+            )
+            session.add(ticket)
+            tickets.append(ticket)
     session.commit()
 
-    print("✅ Database seeded!")
+    # --- Print Summary ---
+    print("✅ Database seeded with realistic data!")
+    print(f"   Created: {len(users)} users")
+    print(f"   Created: {len(matches)} matches")
+    print(f"   Created: {len(tickets)} tickets")
+    print("\nSample Match:", f"{matches[0].home_team} vs {matches[0].away_team}")
+    print("Sample User:", users[0].name)
+    print("Sample Ticket:", f"Seat {tickets[0].seat_number} for Match #{tickets[0].match_id}")
 
 if __name__ == "__main__":
     seed()

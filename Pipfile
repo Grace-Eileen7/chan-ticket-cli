@@ -9,6 +9,7 @@ sqlalchemy = "*"
 alembic = "*"
 
 [dev-packages]
+faker = "*"
 
 [requires]
 python_version = "3.8"

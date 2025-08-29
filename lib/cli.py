@@ -226,7 +226,7 @@ def admin_menu():
         elif choice == "0":
             break
         else:
-            print(" Invalid option.")
+            print("⚠️Invalid option.")
 
 
 if __name__ == "__main__":

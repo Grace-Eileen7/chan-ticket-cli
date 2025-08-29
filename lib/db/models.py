@@ -10,7 +10,7 @@ class Match(Base):
     away_team = Column(String, nullable=False)
     date = Column(String, nullable=False)
     venue = Column(String, nullable=False)
-
+    
     tickets = relationship("Ticket", back_populates="match", cascade="all, delete")
 
     def __repr__(self):
@@ -38,7 +38,7 @@ class Ticket(Base):
     user = relationship("User", back_populates="tickets")
 
     # ensure no double-booking within the same match
-    __table_args__ = (UniqueConstraint("seat_number", "match_id", name="_seat_match_uc"),)
+    __table_args__ = (UniqueConstraint("seat_number", "match_id", name="_seat_match_uc"),)#tuples
 
     def __repr__(self):
         return f"<Ticket {self.id}: Seat {self.seat_number} | Match {self.match_id} | User {self.user_id}>"
